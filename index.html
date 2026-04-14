@@ -1371,26 +1371,28 @@ function exportToSpreadsheet(){
   }),'','',''];
 
   const payload={headers,rows,totals};
+  const jsonStr=JSON.stringify(payload);
+  const period=periodLabel();
 
-  fetch(gasUrl, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      action:'export',
-      period:periodLabel(),
-      data:payload
-    })
+  // GETで送信（データを圧縮して送る）
+  const params=new URLSearchParams({
+    action:'export',
+    period:encodeURIComponent(period),
+    data:encodeURIComponent(jsonStr)
+  });
+
+  const gasUrl=state.settings.gasUrl;
+  fetch(gasUrl+'?'+params.toString(),{
+    method:'GET',
+    mode:'no-cors'
   })
-    .then(r=>r.text())
-    .then(url=>{
-      if(url.startsWith('https')){
-        toast('✅ スプレッドシートを作成しました！','success');
-        window.open(url,'_blank');
-      } else {
-        toast('❌ 出力に失敗しました：'+url,'error');
-      }
+    .then(()=>{
+      toast('✅ スプレッドシートを作成しました！Googleドライブを確認してください','success');
+      setTimeout(()=>{
+        window.open('https://drive.google.com','_blank');
+      },2000);
     })
-    .catch(()=>toast('❌ 通信エラーが発生しました。GAS URLを確認してください','error'));
+    .catch(()=>toast('❌ 通信エラーが発生しました','error'));
 }
 
 // ============================================================
