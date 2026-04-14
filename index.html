@@ -1371,13 +1371,16 @@ function exportToSpreadsheet(){
   }),'','',''];
 
   const payload={headers,rows,totals};
-  const params=new URLSearchParams({
-    action:'export',
-    period:periodLabel(),
-    data:encodeURIComponent(JSON.stringify(payload))
-  });
 
-  fetch(gasUrl+'?'+params.toString())
+  fetch(gasUrl, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      action:'export',
+      period:periodLabel(),
+      data:payload
+    })
+  })
     .then(r=>r.text())
     .then(url=>{
       if(url.startsWith('https')){
