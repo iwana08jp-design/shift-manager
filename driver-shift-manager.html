@@ -1002,7 +1002,7 @@ let state = {
     tenjo: '042022',
     g: 'B000',
     holiday: '9',
-    gasUrl: 'https://script.google.com/macros/s/AKfycbyWoqDTtE5c_fVTervjrXtPuvMb-7tyJ8sPIl-Y9npWKwSiHrtbnLqtYHem-S70iO8pRw/exec',
+    gasUrl: 'https://script.google.com/macros/s/AKfycbyQYLX1oxCMFEh0x1qfB5ONhKFGal7-4OQ7361RILH6XLFfuMrbTBKJ22CfWxsdIBsjYw/exec',
     courses: ['新町B','小川B','中条B','大岡B','信更B','新町d','小川d','中条d','新町Te','大岡e','小川IF','新町f','花岡','疾欠']
   }
 };
@@ -1371,23 +1371,28 @@ function exportToSpreadsheet(){
   }),'','',''];
 
   const payload={headers,rows,totals};
+  const jsonStr=JSON.stringify(payload);
+  const period=periodLabel();
+
+  // GETで送信（データを圧縮して送る）
   const params=new URLSearchParams({
     action:'export',
-    period:periodLabel(),
-    data:encodeURIComponent(JSON.stringify(payload))
+    period:encodeURIComponent(period),
+    data:encodeURIComponent(jsonStr)
   });
 
-  fetch(gasUrl+'?'+params.toString())
-    .then(r=>r.text())
-    .then(url=>{
-      if(url.startsWith('https')){
-        toast('✅ スプレッドシートを作成しました！','success');
-        window.open(url,'_blank');
-      } else {
-        toast('❌ 出力に失敗しました：'+url,'error');
-      }
+  const gasUrl=state.settings.gasUrl;
+  fetch(gasUrl+'?'+params.toString(),{
+    method:'GET',
+    mode:'no-cors'
+  })
+    .then(()=>{
+      toast('✅ スプレッドシートを作成しました！Googleドライブを確認してください','success');
+      setTimeout(()=>{
+        window.open('https://drive.google.com','_blank');
+      },2000);
     })
-    .catch(()=>toast('❌ 通信エラーが発生しました。GAS URLを確認してください','error'));
+    .catch(()=>toast('❌ 通信エラーが発生しました','error'));
 }
 
 // ============================================================
